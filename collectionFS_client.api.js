@@ -159,12 +159,24 @@
 			var self = this;
 			var fileItem = self._getItem(fileId);
 
-		    var carry = [];
-		    for(var i = 0; i < data.length; i++) {
-		        carry.push(data.charCodeAt(i));
-		    }
+			if (typeof data === 'string') {
+				// DEPRECATE THIS
+			    var carry = [];
+			    for(var i = 0; i < data.length; i++) {
+			        carry.push(data.charCodeAt(i));
+			    }
 
-			self.queue[fileId].queueChunks[chunckNumber] = new Uint8Array(carry);//chunkBlob; TODO: use EJSON.binary()
+				self.queue[fileId].queueChunks[chunckNumber] = new Uint8Array(carry);//chunkBlob; TODO: use EJSON.binary()
+			} else {
+				// Test if data is Uint8Array / EJSON.isBinary?
+				if (data instanceof Uint8Array) {
+					// We are using correct binary data
+					self.queue[fileId].queueChunks[chunckNumber] = data;
+				} else
+					throw new Meteor.Error('addDataChunk requires binary data as Uint8Array');
+			}
+
+
 		},
 
 		unionChunkBlobs: function(fileId) {
@@ -319,13 +331,16 @@
 			};
 
 			if (blob) {
-				myreader.readAsBinaryString(blob);
+				myreader.readAsArrayBuffer(blob);
 			} else {
 				throw new Error('Slice function not supported, fileId:'+fileId);
 			}
 		}, //EO get data chunk
 
 		uploadChunk: function(fileId, chunkNumber, data) {
+			console.log('*****************************************');
+			console.log(data);
+
 			var self = this;
 			var fileItem = self._getItem(fileId);
 
@@ -346,7 +361,7 @@
 				fileId = fileId, 
 				currentChunk = chunkNumber, 
 				countChunks = fileItem.countChunks, 
-				data = data
+				data = new Uint8Array(data)
 			],[
 				wait = true
 			], function(error, result) {

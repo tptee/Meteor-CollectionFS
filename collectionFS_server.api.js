@@ -110,15 +110,27 @@ _.extend(CollectionFS.prototype, {
 				throw new Error('Filehandlers for file id: ' + fileId + ' got empty data chunk.n:' + chunk.n);
 			}
 
+			var offset = (chunk.n * fileRecord.chunkSize);
 			// Write chunk data to blob using the given encoding
 			// if(chunk.data.length > 0) {
 			// 	blob.write(chunk.data, (chunk.n * fileRecord.chunkSize), chunk.data.length, encoding);
 			// }
 			// Finally do the data appending
-			for (var i = 0; i < chunk.data.length; i++) {
-				blob[(chunk.n * fileRecord.chunkSize) + i] = chunk.data.charCodeAt(i);
-				//blob.writeUInt8( ((chunk.n * fileRecord.chunkSize) + i), chunk.data.charCodeAt(i) );
+			if (typeof chunk.data === 'string') { // DEPRECATING uploads of binary strings
+				for (var i = 0; i < chunk.data.length; i++)
+					blob[offset + i] = chunk.data.charCodeAt(i);
+				// throw new Meteor.Error('This data type string is deprecating in favour of binary data');
+			} else {
+				// Great we got binary data in the data base
+				
+				// Create a Buffer from UInt8 data
+				var dataBuffer = new Buffer(chunk.data);
+
+				// Copy the dataBuffer into the blob at offset
+				dataBuffer.copy(blob, offset);
 			}
+	
+
 		}); //EO find chunks
 
 		return blob;
