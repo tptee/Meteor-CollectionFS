@@ -20,8 +20,7 @@ Package.on_use(function(api) {
   api.add_files([
     'FileSaver.js',
     'collectionFS_client.js',
-    'collectionFS_client.api.js',
-    'collectionFS_handlebars.js'], 'client');
+    'collectionFS_client.api.js'], 'client');
 
   api.add_files([
     'collectionFS_filesystem.js',
